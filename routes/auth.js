@@ -3,18 +3,21 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const User = require("../models/User");
-const jtw = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 router.post("/signup", (req, res) => {
     // Check if the email is already in the DB
-    User.find({email: req.body.email}, (err, user) => {
+    User.findOne({email: req.body.email}, (err, user) => {
         if (user) {
+            console.log("found a user in the DB in signup")
             // Alert the user "email is taken"
             res.status(401).json({
                 error: true,
                 message: "Email already exists"
             });
         } else {
+            console.log("no user found in DB in signup")
         // If the email is not taken...
             // Create the user in the DB
             User.create({
@@ -30,7 +33,7 @@ router.post("/signup", (req, res) => {
                 } else {
                     // Log the user in (Sign a new token)
                     console.log("ABOUT TO SIGN TOKEN")
-                    var token = jwt.sign(user.toObject(), process.env.JWT_Secret, {
+                    var token = jwt.sign(user.toObject(), process.env.JWT_SECRET, {
                         expiresIn: 60 * 60 * 24
                     });
                     // Return user and token to React app
@@ -48,14 +51,15 @@ router.post("/login", (req, res) => {
     // Check for user in the DB
     User.findOne({
         email: req.body.email
-    }, (err, user) => {
+    }, function(err, user) {
         if (user) {
-            // If there is a user..
+            // If there is a user....
             // Check their entered password against the hash
+            console.log("Password: ", req.body.password)
             var passwordMatch = bcrypt.compareSync(req.body.password, user.password);
-            if (user.authenticated()) {
+            if (user.authenticated(req.body.password)) {
                 // If it matches: log them in (sign a token)
-                var token = jwt.sign(user.toObject(), process.envJWT_SECRET, {
+                var token = jwt.sign(user.toObject(), process.env.JWT_SECRET, {
                     expiresIn: 60 * 60 * 24
                 });
                 res.json({

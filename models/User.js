@@ -36,12 +36,12 @@ userSchema.set("toObject", {
 });
 
 // This checks the entered password against the hashed db password
-userSchema.methods.authenticated = password => {
+userSchema.methods.authenticated = function(password) {
     return bcrypt.compareSync(password, this.password)
 }
 
 // Hashes password before a new record is submitted to the db
-userSchema.pre("save", next => {
+userSchema.pre("save", function(next) {
     if (this.isNew) {
         let hash = bcrypt.hashSync(this.password, 12);
         this.password = hash;
