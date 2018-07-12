@@ -68,14 +68,19 @@ router.post("/login", (req, res) => {
                 });
             } else {
                 // If it doesn't match: Send an error
-                res.status(401).json({
+                res.json({
                     error: true,
+                    status: 401,
                     message: "Email or password is incorrect"
                 });
             }
         } else {
             // If the user isn't in the DB...
-            res.status(401).json(err)
+            res.json({
+                error: true,
+                status: 401,
+                message: "Account not found"
+            });
         }
     })
 });
